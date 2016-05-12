@@ -1,22 +1,15 @@
+
 import os
 import sys
 import transaction
 
 from sqlalchemy import engine_from_config
-
-from pyramid.paster import (
-    get_appsettings,
-    setup_logging,
-    )
-
+from pyramid.paster import get_appsettings, setup_logging
 from pyramid.scripts.common import parse_vars
+from cryptacular.bcrypt import BCRYPTPasswordManager as Manager
 
-from ..models import (
-    DBSession,
-    MyModel,
-    Base,
-    )
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from models import DBSession, Entry, Base, User
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -36,5 +29,10 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        model = MyModel(name='one', value=1)
-        DBSession.add(model)
+
+        manager = Manager()
+        password = manager.encode('admin')
+
+        DBSession.add(Entry(title=u'title', body=u'body'))
+        DBSession.add(User(username=u'admin', password=password))
+
